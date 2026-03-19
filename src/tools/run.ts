@@ -99,8 +99,12 @@ export function registerRunTool(server: McpServer, config: Config): void {
           clearInterval(progressInterval);
 
           // Try to parse JSON response from stdout
+          // Filter out OpenClaw CLI noise lines (e.g. "[mcp-adapter] Registered N tools from cache")
+          // that appear in stdout before the JSON response in 2026.3.13+
+          const jsonStart = stdout.indexOf("{");
+          const cleanStdout = jsonStart >= 0 ? stdout.slice(jsonStart) : stdout;
           try {
-            const response: NodesRunResponse = JSON.parse(stdout.trim());
+            const response: NodesRunResponse = JSON.parse(cleanStdout.trim());
             const p = response.payload;
 
             let output = "";
